@@ -99,3 +99,8 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
