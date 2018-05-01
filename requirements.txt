@@ -1,2 +1,3 @@
 pssm
+numpy
 kafka
