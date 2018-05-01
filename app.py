@@ -2,8 +2,11 @@ import argparse
 import logging
 import os
 import time
+import numpy as np
 
 from kafka import KafkaProducer
+from pssm.dglm import NormalDLM
+from pssm.structure import UnivariateStructure
 
 
 def main(args):
@@ -14,14 +17,18 @@ def main(args):
 
     logging.info('downloading source')
     # dl = urllib.urlretrieve(args.source)
-    sourcefile = ['test'] * 10000
+    state = np.array([0])
+    lc = UnivariateStructure.locally_constant(1.0)
+    dlm = NormalDLM(structure=lc, V=1.4)
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
 
     logging.info('sending lines')
-    for line in sourcefile:
-        producer.send(args.topic, line.encode())
+    for i in range(10000):
+        y = dlm.observation(state)
+        state = dlm.state(state)
+        producer.send(args.topic, str(y).encode())
         time.sleep(1.0 / args.rate)
     logging.info('finished sending source')
 
