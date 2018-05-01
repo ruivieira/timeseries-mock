@@ -21,7 +21,7 @@ def main(args):
 
     logging.info('sending lines')
     for line in sourcefile:
-        producer.send(args.topic, line)
+        producer.send(args.topic, line.encode())
         time.sleep(1.0 / args.rate)
     logging.info('finished sending source')
 
