@@ -2,7 +2,6 @@ import argparse
 import logging
 import os
 import time
-import urllib
 
 from kafka import KafkaProducer
 
@@ -14,14 +13,14 @@ def main(args):
     logging.info('source={}'.format(args.source))
 
     logging.info('downloading source')
-    dl = urllib.urlretrieve(args.source)
-    sourcefile = open(dl[0])
+    # dl = urllib.urlretrieve(args.source)
+    sourcefile = ['test'] * 10000
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
 
     logging.info('sending lines')
-    for line in sourcefile.readlines():
+    for line in sourcefile:
         producer.send(args.topic, line)
         time.sleep(1.0 / args.rate)
     logging.info('finished sending source')
