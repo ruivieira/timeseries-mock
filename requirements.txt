@@ -1,3 +1,4 @@
 pssm
 numpy
+scipy
 kafka
