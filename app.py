@@ -9,28 +9,35 @@ from pssm.dglm import NormalDLM
 from pssm.structure import UnivariateStructure
 
 
+def parse_configuration(conf):
+    state = np.array([0])
+    lc = UnivariateStructure.locally_constant(1.0)
+    model = NormalDLM(structure=lc, V=1.4)
+    return model
+
+
 def main(args):
     logging.info('brokers={}'.format(args.brokers))
     logging.info('topic={}'.format(args.topic))
     logging.info('rate={}'.format(args.rate))
-    logging.info('source={}'.format(args.source))
+    logging.info('conf={}'.format(args.conf))
 
-    logging.info('downloading source')
-    # dl = urllib.urlretrieve(args.source)
-    state = np.array([0])
-    lc = UnivariateStructure.locally_constant(1.0)
-    dlm = NormalDLM(structure=lc, V=1.4)
+    if args.conf:
+        model = parse_configuration(args.conf)
+    else:
+        state = np.array([0])
+        lc = UnivariateStructure.locally_constant(1.0)
+        model = NormalDLM(structure=lc, V=1.4)
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
 
     logging.info('sending lines')
-    for i in range(10000):
-        y = dlm.observation(state)
-        state = dlm.state(state)
+    while True:
+        y = model.observation(state)
+        state = model.state(state)
         producer.send(args.topic, str(y).encode())
         time.sleep(1.0 / args.rate)
-    logging.info('finished sending source')
 
 
 def get_arg(env, default):
@@ -42,14 +49,14 @@ def parse_args(parser):
     args.brokers = get_arg('KAFKA_BROKERS', args.brokers)
     args.topic = get_arg('KAFKA_TOPIC', args.topic)
     args.rate = get_arg('RATE', args.rate)
-    args.source = get_arg('SOURCE_URI', args.source)
     return args
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    logging.info('starting kafka-openshift-python emitter')
-    parser = argparse.ArgumentParser(description='emit some stuff on kafka')
+    logging.info('starting timeseries-mock emitter')
+    parser = argparse.ArgumentParser(
+        description='timeseries data simulator for Kafka')
     parser.add_argument(
         '--brokers',
         help='The bootstrap servers, env variable KAFKA_BROKERS',
@@ -64,8 +71,10 @@ if __name__ == '__main__':
         help='Lines per second, env variable RATE',
         default=3)
     parser.add_argument(
-        '--source',
-        help='The source URI for data to emit, env variable SOURCE_URI')
+        '--conf',
+        type=str,
+        help='Configuration file (YAML)',
+        default=None)
     args = parse_args(parser)
     main(args)
     logging.info('exiting')
