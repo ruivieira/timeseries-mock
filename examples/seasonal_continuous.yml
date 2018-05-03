@@ -1,0 +1,12 @@
+name: "Continuous Seasonal"
+structure:
+  - type: mean
+    start: 10.0
+    noise: 0.6
+  - type: season
+    period: 250
+    start: 1.0
+    noise: 10.4
+observations:
+  - type: continuous
+    noise: 1.5

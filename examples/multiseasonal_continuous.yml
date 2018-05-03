@@ -1,0 +1,17 @@
+name: "Continuous Multi-Seasonal"
+period: 0.5
+structure:
+  - type: mean
+    start: 10.0
+    noise: 1.6
+  - type: season
+    period: 200
+    start: 1.0
+    noise: 3.4
+  - type: season
+    period: 250
+    start: 0.0
+    noise: 1.4
+observations:
+  - type: continuous
+    noise: 10.5

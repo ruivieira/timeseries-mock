@@ -2,42 +2,88 @@ import argparse
 import logging
 import os
 import time
+from functools import reduce
+
 import numpy as np
+import yaml
 
 from kafka import KafkaProducer
 from pssm.dglm import NormalDLM
 from pssm.structure import UnivariateStructure
+from scipy.stats import multivariate_normal as mvn
+
+
+def _read_conf(conf):
+    with open(conf, 'r') as stream:
+        try:
+            d = yaml.load(stream)
+            print(d)
+            return d
+        except yaml.YAMLError as exc:
+            print(exc)
 
 
 def parse_configuration(conf):
-    state = np.array([0])
-    lc = UnivariateStructure.locally_constant(1.0)
-    model = NormalDLM(structure=lc, V=1.4)
-    return model
+    """
+    Parse a YAML configuration file into an state-space model
+    :param conf:
+    :return: A state-space model
+    """
+
+    conf_dict = _read_conf(conf)
+
+    structures = []
+    m0 = []
+
+    for structure in conf_dict['structure']:
+        if structure['type'] == 'mean':
+            print("Add a LC structure")
+            W = float(structure['noise'])
+            m0.append(structure['start'])
+            structures.append(UnivariateStructure.locally_constant(W))
+        if structure['type'] == 'season':
+            W = np.identity(6) * float(structure['noise'])
+            m0 += [structure['start']] * W.shape[0]
+            period = int(structure['period'])
+            structures.append(
+                UnivariateStructure.cyclic_fourier(period=period, harmonics=3,
+                                                   W=W))
+
+    structures = reduce((lambda x, y: x + y), structures)
+
+    model = NormalDLM(structure=structures,
+                     V=float(conf_dict['observations'][0]['noise']))
+    m0 = np.array(m0)
+    C0 = np.eye(len(m0))
+    state = mvn(m0, C0).rvs()
+
+    period = float(conf_dict['period'])
+
+    return model, state, period
 
 
 def main(args):
     logging.info('brokers={}'.format(args.brokers))
     logging.info('topic={}'.format(args.topic))
-    logging.info('rate={}'.format(args.rate))
     logging.info('conf={}'.format(args.conf))
 
     if args.conf:
-        model = parse_configuration(args.conf)
+        model, state, period = parse_configuration(args.conf)
     else:
         state = np.array([0])
         lc = UnivariateStructure.locally_constant(1.0)
         model = NormalDLM(structure=lc, V=1.4)
+        period = 2.0
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
 
-    logging.info('sending lines')
+    logging.info('sending lines (frequency = {})'.format(period))
     while True:
         y = model.observation(state)
         state = model.state(state)
         producer.send(args.topic, str(y).encode())
-        time.sleep(1.0 / args.rate)
+        time.sleep(period)
 
 
 def get_arg(env, default):
@@ -48,7 +94,7 @@ def parse_args(parser):
     args = parser.parse_args()
     args.brokers = get_arg('KAFKA_BROKERS', args.brokers)
     args.topic = get_arg('KAFKA_TOPIC', args.topic)
-    args.rate = get_arg('RATE', args.rate)
+    args.conf = get_arg('CONF', args.conf)
     return args
 
 
@@ -65,11 +111,6 @@ if __name__ == '__main__':
         '--topic',
         help='Topic to publish to, env variable KAFKA_TOPIC',
         default='bones-brigade')
-    parser.add_argument(
-        '--rate',
-        type=int,
-        help='Lines per second, env variable RATE',
-        default=3)
     parser.add_argument(
         '--conf',
         type=str,
