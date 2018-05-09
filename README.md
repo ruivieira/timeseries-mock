@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ruivieira/timeseries-mock.svg?branch=master)](https://travis-ci.org/ruivieira/timeseries-mock)
+
 # timeseries-mock
 
 ## Install
@@ -131,4 +133,5 @@ a part of the [Bones Brigade](https://github.com/bones-brigade) set of OpenShift
 application skeletons.
 
 [1] - whatever the minimum and maximum double/float values are, of course
+
 [2] - In this case I suggest using some auto-regressive component in the structure.
