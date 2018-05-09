@@ -87,6 +87,7 @@ def build_message(name, value):
         'value': value
     }).encode()
 
+
 def main(args):
     logging.info('brokers={}'.format(args.brokers))
     logging.info('topic={}'.format(args.topic))
