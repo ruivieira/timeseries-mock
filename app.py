@@ -8,7 +8,7 @@ import numpy as np
 import yaml
 
 from kafka import KafkaProducer
-from pssm.dglm import NormalDLM
+from pssm.dglm import NormalDLM, PoissonDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
@@ -23,19 +23,11 @@ def _read_conf(conf):
             print(exc)
 
 
-def parse_configuration(conf):
-    """
-    Parse a YAML configuration file into an state-space model
-    :param conf:
-    :return: A state-space model
-    """
-
-    conf_dict = _read_conf(conf)
-
+def _parse_structure(conf):
     structures = []
     m0 = []
 
-    for structure in conf_dict['structure']:
+    for structure in conf:
         if structure['type'] == 'mean':
             print("Add a LC structure")
             W = float(structure['noise'])
@@ -48,13 +40,36 @@ def parse_configuration(conf):
             structures.append(
                 UnivariateStructure.cyclic_fourier(period=period, harmonics=3,
                                                    W=W))
-
-    structures = reduce((lambda x, y: x + y), structures)
-
-    model = NormalDLM(structure=structures,
-                     V=float(conf_dict['observations'][0]['noise']))
     m0 = np.array(m0)
     C0 = np.eye(len(m0))
+
+    return reduce((lambda x, y: x + y), structures), m0, C0
+
+
+def _parse_observations(obs, structure):
+    if obs['type'] == 'continuous':
+        model = NormalDLM(structure=structure,
+                          V=obs['noise'])
+    elif obs['type'] == 'discrete':
+        model = PoissonDLM(structure=structure)
+    return model
+
+
+def parse_configuration(conf):
+    """
+    Parse a YAML configuration file into an state-space model
+    :param conf:
+    :return: A state-space model
+    """
+
+    conf_dict = _read_conf(conf)
+
+    print(conf_dict)
+
+    structure, m0, C0 = _parse_structure(conf_dict['structure'])
+
+    model = _parse_observations(conf_dict['observations'], structure)
+
     state = mvn(m0, C0).rvs()
 
     period = float(conf_dict['period'])
