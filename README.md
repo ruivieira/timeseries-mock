@@ -78,9 +78,57 @@ structure:
     noise: 0.7    
 ```
 
+### Observations
+
+The observation type can be configured using the `observations` key.
+The main supported observation types are detailed below.
+
+#### Continuous
+
+Continuous observations allow to model any floating point type measure. Note that
+this is not bound by upper or lower limits (range `]-inf, +inf[`<sup>[1]</sup>). If you use `continuous`
+to simulate, say, temperature readings from a sensor, keep in mind that the values might drift
+to very high or very low depending on the structure. <sup>[2]</sup>  
+
+```yaml
+observations:
+  - type: continuous
+    noise: 1.5
+```
+
+#### Discrete
+
+Discrete observations allow to model any integer measure in the range `[0, +inf[.`
+The notes about drift in the continuous section also apply.
+
+```yaml
+observations:
+  - type: discrete
+```
+
+Please note that (at the moment) discrete observations only allow the `noise` to be specified
+at the structure level, since they are based on a Poisson model.
+
+#### Categorical
+
+Categorical observations allow to model any set of categories represented by an integer.
+
+```yaml
+observations:
+ - type: categorical
+   categories: 16
+```
+
+The typical example would be setting `categories` to `1`. This would simulate
+a stream of "binary" values `0` and `1`. In the above example, setting `categories`
+to `16` would output a stream taking any value from `[0, 1, 2, ..., 16]`.
+
 ## Acknowledgements
 
 This project is based on [elmiko](https://github.com/elmiko)'s 
 [Kafka OpenShift Python Emitter](https://github.com/bones-brigade/kafka-openshift-python-emitter), 
 a part of the [Bones Brigade](https://github.com/bones-brigade) set of OpenShift
 application skeletons.
+
+[1] - whatever the minimum and maximum double/float values are, of course
+[2] - In this case I suggest using some auto-regressive component in the structure.

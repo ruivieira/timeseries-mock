@@ -1,0 +1,9 @@
+name: "Discrete Mean"
+period: 0.5
+structure:
+  - type: mean
+    start: 0.0
+    noise: 0.01
+observations:
+  type: categorical
+  categories: 1

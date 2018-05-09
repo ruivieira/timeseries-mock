@@ -8,7 +8,7 @@ import numpy as np
 import yaml
 
 from kafka import KafkaProducer
-from pssm.dglm import NormalDLM, PoissonDLM
+from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
@@ -48,10 +48,11 @@ def _parse_structure(conf):
 
 def _parse_observations(obs, structure):
     if obs['type'] == 'continuous':
-        model = NormalDLM(structure=structure,
-                          V=obs['noise'])
+        model = NormalDLM(structure=structure, V=obs['noise'])
     elif obs['type'] == 'discrete':
         model = PoissonDLM(structure=structure)
+    elif obs['type'] == 'categorical':
+        model = BinomialDLM(structure=structure, categories=obs['categories'])
     return model
 
 
