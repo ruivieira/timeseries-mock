@@ -1,5 +1,5 @@
-name: "Discrete Mean"
-period: 0.5
+name: "Categorical Mean"
+period: 0.1
 structure:
   - type: mean
     start: 0.0

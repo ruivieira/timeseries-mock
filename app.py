@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 import time
@@ -75,8 +76,16 @@ def parse_configuration(conf):
 
     period = float(conf_dict['period'])
 
-    return model, state, period
+    name = conf_dict['name']
 
+    return model, state, period, name
+
+
+def build_message(name, value):
+    return json.dumps({
+        'name': name,
+        'value': value
+    }).encode()
 
 def main(args):
     logging.info('brokers={}'.format(args.brokers))
@@ -84,12 +93,13 @@ def main(args):
     logging.info('conf={}'.format(args.conf))
 
     if args.conf:
-        model, state, period = parse_configuration(args.conf)
+        model, state, period, name = parse_configuration(args.conf)
     else:
         state = np.array([0])
         lc = UnivariateStructure.locally_constant(1.0)
         model = NormalDLM(structure=lc, V=1.4)
         period = 2.0
+        name = 'default name'
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
@@ -98,7 +108,7 @@ def main(args):
     while True:
         y = model.observation(state)
         state = model.state(state)
-        producer.send(args.topic, str(y).encode())
+        producer.send(args.topic, build_message(name, y))
         time.sleep(period)
 
 
