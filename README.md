@@ -125,6 +125,24 @@ The typical example would be setting `categories` to `1`. This would simulate
 a stream of "binary" values `0` and `1`. In the above example, setting `categories`
 to `16` would output a stream taking any value from `[0, 1, 2, ..., 16]`.
 
+A variant of this generator consists in passing a list of values directly.
+Let's assume we wanted to generate a stream of random DNA nucleotides, that is,
+`C,T,A,G`. This corresponds to four categories which we can specify in the `values` field:
+
+```yaml
+observations:
+ - type: categorical
+   values: C,T,A,G
+```
+
+Comma-separated values are taken as the categories, without needing to specify anything else.
+The output is the a random element of `values` at each timepoint, in this case the time-series
+would be:
+
+```
+G -> T -> G -> T -> A -> A -> A -> C -> ...
+```
+ 
 ## Acknowledgements
 
 This project is based on [elmiko](https://github.com/elmiko)'s 

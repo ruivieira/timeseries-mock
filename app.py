@@ -13,6 +13,8 @@ from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
+from transformers import BinomialTransformer
+
 
 def _read_conf(conf):
     with open(conf, 'r') as stream:
@@ -53,7 +55,17 @@ def _parse_observations(obs, structure):
     elif obs['type'] == 'discrete':
         model = PoissonDLM(structure=structure)
     elif obs['type'] == 'categorical':
-        model = BinomialDLM(structure=structure, categories=obs['categories'])
+        if 'values' in obs:
+            values = obs['values'].split(',')
+            model = BinomialTransformer(structure=structure, source=values)
+        elif 'categories' in obs:
+            model = BinomialDLM(structure=structure,
+                                categories=obs['categories'])
+        else:
+            raise ValueError("Categorical models must have either 'values' "
+                             "or 'categories'")
+    else:
+        raise ValueError("Model type {} is not valid".format(obs['type']))
     return model
 
 
@@ -109,6 +121,7 @@ def main(args):
     while True:
         y = model.observation(state)
         state = model.state(state)
+        print("y = {}".format(y))
         producer.send(args.topic, build_message(name, y))
         time.sleep(period)
 

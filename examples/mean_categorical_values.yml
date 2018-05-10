@@ -1,0 +1,9 @@
+name: "Nucleotides"
+period: 0.25
+structure:
+  - type: mean
+    start: 0.0
+    noise: 0.1
+observations:
+  type: categorical
+  values: C,T,A,G
