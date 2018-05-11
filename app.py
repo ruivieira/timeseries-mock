@@ -9,7 +9,7 @@ import numpy as np
 import yaml
 
 from kafka import KafkaProducer
-from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM, CompositeDLM
+from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
