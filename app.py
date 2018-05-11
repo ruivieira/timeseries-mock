@@ -9,7 +9,7 @@ import numpy as np
 import yaml
 
 from kafka import KafkaProducer
-from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM
+from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM, CompositeDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
@@ -17,13 +17,38 @@ from transformers import BinomialTransformer
 
 
 def _read_conf(conf):
+    """
+    Convert a YAML configuration into a dictionary
+    :param conf: The configuration filename
+    :return: A dictionary
+    """
     with open(conf, 'r') as stream:
         try:
             d = yaml.load(stream)
-            print(d)
             return d
         except yaml.YAMLError as exc:
             print(exc)
+
+
+def _parse_component(conf):
+    """
+    Parse an individual record of the structure configuration
+    :param conf:
+    :return:
+    """
+    if conf['type'] == 'mean':
+        print("Add a LC structure")
+        W = float(conf['noise'])
+        m0 = [conf['start']]
+        structure = UnivariateStructure.locally_constant(W)
+    elif conf['type'] == 'season':
+        W = np.identity(6) * float(conf['noise'])
+        m0 = [conf['start']] * W.shape[0]
+        period = int(conf['period'])
+        structure = UnivariateStructure.cyclic_fourier(period=period,
+                                                       harmonics=3,
+                                                       W=W)
+    return structure, m0
 
 
 def _parse_structure(conf):
@@ -31,22 +56,28 @@ def _parse_structure(conf):
     m0 = []
 
     for structure in conf:
-        if structure['type'] == 'mean':
-            print("Add a LC structure")
-            W = float(structure['noise'])
-            m0.append(structure['start'])
-            structures.append(UnivariateStructure.locally_constant(W))
-        if structure['type'] == 'season':
-            W = np.identity(6) * float(structure['noise'])
-            m0 += [structure['start']] * W.shape[0]
-            period = int(structure['period'])
-            structures.append(
-                UnivariateStructure.cyclic_fourier(period=period, harmonics=3,
-                                                   W=W))
+        _structure, _m0 = _parse_component(structure)
+        m0.extend(_m0)
+        structures.append(_structure)
+
     m0 = np.array(m0)
     C0 = np.eye(len(m0))
 
     return reduce((lambda x, y: x + y), structures), m0, C0
+
+
+def _parse_composite(conf):
+    models = []
+    prior_mean = []
+    for element in conf:
+        structure, m0, C0 = _parse_structure(element['structure'])
+        prior_mean.extend(m0)
+        model = _parse_observations(element['observations'], structure)
+        models.append(model)
+    model = CompositeDLM(*models)
+    m0 = np.array(prior_mean)
+    C0 = np.eye(len(m0))
+    return model, m0, C0
 
 
 def _parse_observations(obs, structure):
@@ -79,10 +110,11 @@ def parse_configuration(conf):
     conf_dict = _read_conf(conf)
 
     print(conf_dict)
-
-    structure, m0, C0 = _parse_structure(conf_dict['structure'])
-
-    model = _parse_observations(conf_dict['observations'], structure)
+    if 'compose' in conf_dict:
+        model, m0, C0 = _parse_composite(conf_dict['compose'])
+    else:
+        structure, m0, C0 = _parse_structure(conf_dict['structure'])
+        model = _parse_observations(conf_dict['observations'], structure)
 
     state = mvn(m0, C0).rvs()
 
@@ -121,8 +153,9 @@ def main(args):
     while True:
         y = model.observation(state)
         state = model.state(state)
-        print("y = {}".format(y))
-        producer.send(args.topic, build_message(name, y))
+        message = build_message(name, y)
+        print("message = {}".format(message))
+        producer.send(args.topic, message)
         time.sleep(period)
 
 

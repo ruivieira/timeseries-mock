@@ -1,0 +1,17 @@
+name: "Categorical Mean"
+period: 0.1
+compose:
+    - structure:
+      - type: mean
+        start: 0.0
+        noise: 0.01
+      observations:
+        type: categorical
+        categories: 1
+    - structure:
+      - type: mean
+        start: 0.0
+        noise: 0.01
+      observations:
+        type: categorical
+        categories: 1

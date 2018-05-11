@@ -142,7 +142,35 @@ would be:
 ```
 G -> T -> G -> T -> A -> A -> A -> C -> ...
 ```
- 
+
+### A complete example
+
+A full configuration file would look something like this:
+
+```yaml
+name: "status"
+rate: 0.1
+structure:
+  - type: mean
+    start: 0.0
+    noise: 0.5
+  - type: season
+    period: 600
+    start: 0.0
+    noise: 1.7    
+observations:
+  - type: categorical
+    values: pass,fail
+```
+
+This configuration generate a stream of values `pass` or `fail` with a rate one value every 0.1 seconds, with a random walk like mean and a cyclic pattern every minute.
+
+### Multivariate data
+
+The previous example was for a univariate observation, however in a real-world application it is very likely we might need to use multivariate data.
+
+To compose a multivariate data model we simply use the model specification above and add as many models together as we want.
+
 ## Acknowledgements
 
 This project is based on [elmiko](https://github.com/elmiko)'s 
