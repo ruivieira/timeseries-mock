@@ -177,20 +177,20 @@ To define a multivariate model we declare the individual components inside a `co
 name: "bivariate"
 rate: 0.5
 compose:
-	- structure:          # component 1
-	  - type: mean
-	    start: 0.0
-	    noise: 0.5
-	- observations:
-	  - type: continuous
-	    noise: 0.5
-	- structure:          # component 2
-	  - type: mean
-	    start: 5.0
-	    noise: 3.7
-	- observations:
-	  - type: continuous
-	    noise: 1.5
+  - structure:          # component 1
+    - type: mean
+    start: 0.0
+    noise: 0.5
+  - observations:
+    - type: continuous
+    noise: 0.5
+  - structure:          # component 2
+    - type: mean
+    start: 5.0
+    noise: 3.7
+  - observations:
+    - type: continuous
+    noise: 1.5
 ```
 
 This would output bivariate continuous data as
@@ -210,14 +210,14 @@ If we wanted the previous bivariate example, but with the same underlying struct
 name: "bivariate"
 rate: 0.5
 compose:
-	- replicate: 2
-	  structure:
-	  - type: mean
-	    start: 0.0
-	    noise: 0.5
-	  observations:
-	  - type: continuous
-	    noise: 0.5
+  - replicate: 2
+    structure:
+      - type: mean
+        start: 0.0
+        noise: 0.5
+    observations:
+      - type: continuous
+        noise: 0.5
 ```
 
 #### A more complex example
