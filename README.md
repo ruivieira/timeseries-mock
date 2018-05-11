@@ -171,6 +171,108 @@ The previous example was for a univariate observation, however in a real-world a
 
 To compose a multivariate data model we simply use the model specification above and add as many models together as we want.
 
+To define a multivariate model we declare the individual components inside a `compose` clause. For instance, to declare a bivariate continous stream a minimal example would be:
+
+```yaml
+name: "bivariate"
+rate: 0.5
+compose:
+	- structure:          # component 1
+	  - type: mean
+	    start: 0.0
+	    noise: 0.5
+	- observations:
+	  - type: continuous
+	    noise: 0.5
+	- structure:          # component 2
+	  - type: mean
+	    start: 5.0
+	    noise: 3.7
+	- observations:
+	  - type: continuous
+	    noise: 1.5
+```
+
+This would output bivariate continuous data as
+
+```
+[-0.6159691811574524, 6.70524660538598]
+[0.09028869591370958, 6.519194818247104]
+[-0.1980867909796035, 6.503466768530726]
+[0.0063771543008148135, 5.2229932206447405]
+...
+```
+
+In the specific case, where you need a multivariate observation, but the structure is the *same*, you can use the shorthand `replicate`. The observation is then replicated `n` times.
+If we wanted the previous bivariate example, but with the same underlying structure, we could then just write:
+
+```yaml
+name: "bivariate"
+rate: 0.5
+compose:
+	- replicate: 2
+	  structure:
+	  - type: mean
+	    start: 0.0
+	    noise: 0.5
+	  observations:
+	  - type: continuous
+	    noise: 0.5
+```
+
+#### A more complex example
+
+In this example we will generate a fake HTTP log stream. The multivariate data will contain a request type (`GET`, `POST` or `PUT`), an URL from a provided list and random IP address.
+We want the URL to have seasonality, that is, users will tend more to a certain URL than others over time in a cyclic fashion.
+
+We can define this model as:
+
+```yaml
+name: "HTTP log"
+period: 0.1
+compose:
+    - structure:
+      - type: mean
+        start: 0.0
+        noise: 0.01
+      observations:
+        type: categorical
+        values: GET,POST,PUT
+    - structure:
+      - type: mean
+        start: 0.0
+        noise: 0.01
+      - type: season
+        start: 1.0
+        period: 15
+        noise: 0.2
+      observations:
+        type: categorical
+        values: /site/page.htm,/site/index.htm,/internal/example.htm
+    - replicate: 4
+      structure:
+      - type: mean
+        start: 0.0
+        noise: 2.1
+      observations:
+        type: categorical
+        categories: 255
+```
+
+An example output would be
+
+```
+["PUT", "/internal/example.htm", 171, 158, 59, 89]
+["GET", "/internal/example.htm", 171, 253, 71, 146]
+["PUT", "/internal/example.htm", 224, 252, 9, 156]
+["POST", "/site/index.htm", 143, 253, 6, 126]
+["POST", "/site/page.htm", 238, 254, 2, 48]
+["GET", "/site/page.htm", 228, 252, 52, 126]
+["POST", "/internal/example.htm", 229, 234, 103, 233]
+["GET", "/internal/example.htm", 185, 221, 109, 195]
+...
+```
+
 ## Acknowledgements
 
 This project is based on [elmiko](https://github.com/elmiko)'s 

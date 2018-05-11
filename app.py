@@ -13,7 +13,7 @@ from pssm.dglm import NormalDLM, PoissonDLM, BinomialDLM, CompositeDLM
 from pssm.structure import UnivariateStructure
 from scipy.stats import multivariate_normal as mvn
 
-from transformers import BinomialTransformer
+from transformers import BinomialTransformer, CompositeTransformer
 
 
 def _read_conf(conf):
@@ -70,11 +70,18 @@ def _parse_composite(conf):
     models = []
     prior_mean = []
     for element in conf:
-        structure, m0, C0 = _parse_structure(element['structure'])
-        prior_mean.extend(m0)
-        model = _parse_observations(element['observations'], structure)
-        models.append(model)
-    model = CompositeDLM(*models)
+        if 'replicate' in element:
+            structure, m0, C0 = _parse_structure(element['structure'])
+            prior_mean.extend([m0] * element['replicate'])
+            model = _parse_observations(element['observations'], structure)
+            models.extend([model] * element['replicate'])
+        else:
+            structure, m0, C0 = _parse_structure(element['structure'])
+            prior_mean.extend(m0)
+            model = _parse_observations(element['observations'], structure)
+            models.append(model)
+    print(models)
+    model = CompositeTransformer(*models)
     m0 = np.array(prior_mean)
     C0 = np.eye(len(m0))
     return model, m0, C0
@@ -153,6 +160,7 @@ def main(args):
     while True:
         y = model.observation(state)
         state = model.state(state)
+        print(y)
         message = build_message(name, y)
         print("message = {}".format(message))
         producer.send(args.topic, message)

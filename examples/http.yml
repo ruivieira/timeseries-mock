@@ -1,4 +1,4 @@
-name: "Categorical Mean"
+name: "HTTP log"
 period: 0.1
 compose:
     - structure:
@@ -7,11 +7,23 @@ compose:
         noise: 0.01
       observations:
         type: categorical
-        categories: 1
+        values: GET,POST,PUT
     - structure:
       - type: mean
         start: 0.0
         noise: 0.01
+      - type: season
+        start: 1.0
+        period: 15
+        noise: 0.2
       observations:
         type: categorical
-        categories: 1
+        values: /site/page.htm,/site/index.htm,/internal/example.htm
+    - replicate: 4
+      structure:
+      - type: mean
+        start: 0.0
+        noise: 2.1
+      observations:
+        type: categorical
+        categories: 255
