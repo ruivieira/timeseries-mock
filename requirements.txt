@@ -2,3 +2,4 @@ pssm
 numpy
 scipy
 kafka
+pyyaml
