@@ -151,7 +151,7 @@ def main(args):
         lc = UnivariateStructure.locally_constant(1.0)
         model = NormalDLM(structure=lc, V=1.4)
         period = 2.0
-        name = 'default name'
+        name = 'data'
 
     logging.info('creating kafka producer')
     producer = KafkaProducer(bootstrap_servers=args.brokers)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--topic',
         help='Topic to publish to, env variable KAFKA_TOPIC',
-        default='bones-brigade')
+        default='data')
     parser.add_argument(
         '--conf',
         type=str,

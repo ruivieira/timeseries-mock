@@ -10,7 +10,7 @@ To setup the data generator on OpenShift simply use the `s2i` by running:
 oc new-app centos/python-36-centos7~https://github.com/ruivieira/timeseries-mock \
   -e KAFKA_BROKERS=kafka:9092 \
   -e KAFKA_TOPIC=example \
-  -e CONF=examples/mean_continuous.yml
+  -e CONF=examples/mean_continuous.yml \
   --name=emitter
 ```
 
@@ -87,10 +87,10 @@ The main supported observation types are detailed below.
 
 #### Continuous
 
-Continuous observations allow to model any floating point type measure. Note that
+Continuous observations allow us to model any floating point type measure. Note that
 this is not bound by upper or lower limits (range `]-inf, +inf[`<sup>[1]</sup>). If you use `continuous`
-to simulate, say, temperature readings from a sensor, keep in mind that the values might drift
-to very high or very low depending on the structure. <sup>[2]</sup>  
+to simulate, say, temperature readings from a sensor, keep in mind that the simulated readings might drift
+to very high or very low values depending on the structure. <sup>[2]</sup>  
 
 ```yaml
 observations:
@@ -100,7 +100,7 @@ observations:
 
 #### Discrete
 
-Discrete observations allow to model any integer measure in the range `[0, +inf[.`
+Discrete observations allow us to model any integer measure in the range `[0, +inf[.`
 The notes about drift in the continuous section also apply.
 
 ```yaml
@@ -108,8 +108,8 @@ observations:
   - type: discrete
 ```
 
-Please note that (at the moment) discrete observations only allow the `noise` to be specified
-at the structure level, since they are based on a Poisson model.
+Please note that (at the moment) the discrete case only allows the `noise` to be specified
+at the structure level, since the observations are based on a Poisson model.
 
 #### Categorical
 
@@ -163,7 +163,7 @@ observations:
     values: pass,fail
 ```
 
-This configuration generate a stream of values `pass` or `fail` with a rate one value every 0.1 seconds, with a random walk like mean and a cyclic pattern every minute.
+This configuration generate a stream of values `pass` or `fail` with a rate one value every 0.1 seconds, with a random-walk-like mean and a cyclic pattern every minute.
 
 ### Multivariate data
 
@@ -193,7 +193,7 @@ compose:
     noise: 1.5
 ```
 
-This would output bivariate continuous data as
+This would output a stream of bivariate observations such as
 
 ```
 [-0.6159691811574524, 6.70524660538598]
@@ -203,8 +203,8 @@ This would output bivariate continuous data as
 ...
 ```
 
-In the specific case, where you need a multivariate observation, but the structure is the *same*, you can use the shorthand `replicate`. The observation is then replicated `n` times.
-If we wanted the previous bivariate example, but with the same underlying structure, we could then just write:
+In the specific case where you wish to simulate a multivariate observation with components that follow the same structure, you can use the shorthand `replicate`. The observation is then replicated `n` times.
+For example, to simulate bivariate samples where the components had the same underlying structure, we could write:
 
 ```yaml
 name: "bivariate"
@@ -222,7 +222,7 @@ compose:
 
 #### A more complex example
 
-In this example we will generate a fake HTTP log stream. The multivariate data will contain a request type (`GET`, `POST` or `PUT`), an URL from a provided list and random IP address.
+In this example we will generate a fake HTTP log stream. The multivariate data will contain a request type (`GET`, `POST` or `PUT`), a URL from a provided list and random IP address.
 We want the URL to have seasonality, that is, users will tend more to a certain URL than others over time in a cyclic fashion.
 
 We can define this model as:
