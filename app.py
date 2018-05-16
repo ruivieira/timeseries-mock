@@ -48,6 +48,8 @@ def _parse_component(conf):
         structure = UnivariateStructure.cyclic_fourier(period=period,
                                                        harmonics=3,
                                                        W=W)
+    else:
+        raise ValueError("Unknown component type '{}'".format(conf['type']))
     return structure, m0
 
 
@@ -109,25 +111,22 @@ def _parse_observations(obs, structure):
 
 def parse_configuration(conf):
     """
-    Parse a YAML configuration file into an state-space model
+    Parse a YAML configuration string into an state-space model
     :param conf:
     :return: A state-space model
     """
 
-    conf_dict = _read_conf(conf)
-
-    print(conf_dict)
-    if 'compose' in conf_dict:
-        model, m0, C0 = _parse_composite(conf_dict['compose'])
+    if 'compose' in conf:
+        model, m0, C0 = _parse_composite(conf['compose'])
     else:
-        structure, m0, C0 = _parse_structure(conf_dict['structure'])
-        model = _parse_observations(conf_dict['observations'], structure)
+        structure, m0, C0 = _parse_structure(conf['structure'])
+        model = _parse_observations(conf['observations'], structure)
 
     state = mvn(m0, C0).rvs()
 
-    period = float(conf_dict['period'])
+    period = float(conf['period'])
 
-    name = conf_dict['name']
+    name = conf['name']
 
     return model, state, period, name
 
@@ -145,7 +144,7 @@ def main(args):
     logging.info('conf={}'.format(args.conf))
 
     if args.conf:
-        model, state, period, name = parse_configuration(args.conf)
+        model, state, period, name = parse_configuration(_read_conf(args.conf))
     else:
         state = np.array([0])
         lc = UnivariateStructure.locally_constant(1.0)
@@ -160,7 +159,6 @@ def main(args):
     while True:
         y = model.observation(state)
         state = model.state(state)
-        print(y)
         message = build_message(name, y)
         print("message = {}".format(message))
         producer.send(args.topic, message)
