@@ -9,6 +9,9 @@ from nose.tools import assert_equals, assert_true
 from pssm.dglm import NormalDLM, CompositeDLM
 from pssm.structure import UnivariateStructure, MultivariateStructure
 import yaml
+import sys
+
+sys.path.append("..")  # noqa: E402
 
 from app import parse_configuration
 
