@@ -119,3 +119,74 @@ compose:
 
         assert_equals(period, 0.1, "period has the wrong value")
         assert_equals(name, "HTTP log", "name has the wrong value")
+
+    def harmonics_default_test(self):
+        """Test if the default number of harmonics is correct
+        """
+        conf = """
+name: "Continuous Mean"
+period: 0.5
+structure:
+  - type: season
+    start: 1000.0
+    period: 100
+    noise: 4.6
+observations:
+  type: continuous
+  noise: 5.5"""
+
+        d = _parse_string(conf)
+
+        model, state, period, name = parse_configuration(d)
+
+        assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
+        assert_true(isinstance(model.structure, UnivariateStructure),
+                    "structure must be UnivariateStructure")
+        assert_equals(model.structure.F.shape, (6, 1),
+                      "F has the wrong dimensions")
+        assert_equals(model.structure.G.shape, (6, 6),
+                      "G has the wrong dimensions")
+        assert_equals(model.structure.W.shape, (6, 6),
+                      "W has the wrong dimensions")
+
+        assert_equals(state.shape, (6,),
+                      "initial state has the wrong dimensions")
+
+        assert_equals(period, 0.5, "period has the wrong value")
+        assert_equals(name, "Continuous Mean", "name has the wrong value")
+
+    def harmonics_test(self):
+        """Test if the passed number of harmonics is correct
+        """
+        conf = """
+name: "Continuous Mean"
+period: 0.5
+structure:
+  - type: season
+    start: 1000.0
+    harmonics: 5
+    period: 100
+    noise: 4.6
+observations:
+  type: continuous
+  noise: 5.5"""
+
+        d = _parse_string(conf)
+
+        model, state, period, name = parse_configuration(d)
+
+        assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
+        assert_true(isinstance(model.structure, UnivariateStructure),
+                    "structure must be UnivariateStructure")
+        assert_equals(model.structure.F.shape, (10, 1),
+                      "F has the wrong dimensions")
+        assert_equals(model.structure.G.shape, (10, 10),
+                      "G has the wrong dimensions")
+        assert_equals(model.structure.W.shape, (10, 10),
+                      "W has the wrong dimensions")
+
+        assert_equals(state.shape, (10,),
+                      "initial state has the wrong dimensions")
+
+        assert_equals(period, 0.5, "period has the wrong value")
+        assert_equals(name, "Continuous Mean", "name has the wrong value")

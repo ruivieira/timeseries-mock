@@ -36,17 +36,23 @@ def _parse_component(conf):
     :param conf:
     :return:
     """
-    if conf['type'] == 'mean':
+    type = conf['type']
+    if  type == 'mean':
         print("Add a LC structure")
         W = float(conf['noise'])
         m0 = [conf['start']]
         structure = UnivariateStructure.locally_constant(W)
-    elif conf['type'] == 'season':
-        W = np.identity(6) * float(conf['noise'])
+    elif type == 'season':
+        # check if number of harmonics is defined
+        if 'harmonics' in conf:
+            nharmonics = conf['harmonics']
+        else:
+            nharmonics = 3
+        W = np.identity(2 * nharmonics) * float(conf['noise'])
         m0 = [conf['start']] * W.shape[0]
         period = int(conf['period'])
         structure = UnivariateStructure.cyclic_fourier(period=period,
-                                                       harmonics=3,
+                                                       harmonics=nharmonics,
                                                        W=W)
     else:
         raise ValueError("Unknown component type '{}'".format(conf['type']))
