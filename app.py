@@ -37,7 +37,7 @@ def _parse_component(conf):
     :return:
     """
     type = conf['type']
-    if  type == 'mean':
+    if type == 'mean':
         print("Add a LC structure")
         W = float(conf['noise'])
         m0 = [conf['start']]

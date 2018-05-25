@@ -63,6 +63,20 @@ That is, if your `rate` is `0.1` (the generator will emit new data every `0.1` s
 then a `period` of `20` means that the season will last `rate * period = 2` seconds.
 But if your `rate` is `100` seconds, the season will repeat every `33.33` minutes.
 
+The seasonal component Fourier representation consists of `n` harmonics, which can be either specified
+in the configuration as:
+
+```yaml
+structure:
+  - type: season
+    # ...
+    harmonics: 6
+    # ...
+```
+
+or just default to `n=3` harmonics if not specified.
+
+
 
 ### Composing
 
