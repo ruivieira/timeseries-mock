@@ -54,6 +54,16 @@ def _parse_component(conf):
         structure = UnivariateStructure.cyclic_fourier(period=period,
                                                        harmonics=nharmonics,
                                                        W=W)
+    elif type == 'arma':
+        if 'coefficients' in conf:
+            coefficients = [float(p) for p in conf['coefficients'].split(',')]
+        else:
+            coefficients = [1.0]
+        noise = float(conf['noise'])
+        m0 = [conf['start']]*len(coefficients)
+        structure = UnivariateStructure.arma(p=len(coefficients),
+                                             betas=coefficients,
+                                             W=noise)
     else:
         raise ValueError("Unknown component type '{}'".format(conf['type']))
     return structure, m0
