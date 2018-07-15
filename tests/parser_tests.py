@@ -46,7 +46,7 @@ observations:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
         assert_true(isinstance(model.structure, UnivariateStructure),
@@ -101,7 +101,7 @@ compose:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, CompositeDLM),
                     "model must be CompositeDLM")
@@ -137,7 +137,7 @@ observations:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
         assert_true(isinstance(model.structure, UnivariateStructure),
@@ -173,7 +173,7 @@ observations:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
         assert_true(isinstance(model.structure, UnivariateStructure),
@@ -207,7 +207,7 @@ observations:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
         assert_true(isinstance(model.structure, UnivariateStructure),
@@ -242,7 +242,7 @@ observations:
 
         d = _parse_string(conf)
 
-        model, state, period, name = parse_configuration(d)
+        model, state, period, name, _ = parse_configuration(d)
 
         assert_true(isinstance(model, NormalDLM), "model must be NormalDLM")
         assert_true(isinstance(model.structure, UnivariateStructure),
