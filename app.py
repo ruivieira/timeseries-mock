@@ -202,18 +202,23 @@ def main(args):
 
     logging.info('sending lines (frequency = {})'.format(period))
     while True:
-        y = model.observation(state)
-        state = model.state(state)
+
         dimensions = np.size(state)
+
         if dimensions == 1:
             logging.debug("state = {}".format(state))
-            state = anomalies[0](state)
-            logging.debug("anomaly = {}".format(state))
+            _state = anomalies[0](state)
+            logging.debug("anomaly = {}".format(_state))
         else:
+            _state = np.copy(state)
             for i in range(dimensions):
                 logging.debug("state {} = {}".format(i, state[i]))
-                state[i] = anomalies[i](state[i])
+                _state[i] = anomalies[i](state[i])
                 logging.debug("anomaly {} = {}".format(i, state[i]))
+
+        y = model.observation(_state)
+        state = model.state(state)
+
         message = build_message(name, y)
         logging.info("message = {}".format(message))
         producer.send(args.topic, message)
