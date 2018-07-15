@@ -1,0 +1,12 @@
+name: "Continuous Mean"
+period: 0.5
+structure:
+  - type: mean
+    start: 1000.0
+    noise: 4.6
+    anomalies:
+      probability: 0.1
+      scale: 3.0
+observations:
+  type: continuous
+  noise: 5.5
